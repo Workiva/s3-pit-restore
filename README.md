@@ -47,6 +47,10 @@ If want to restore a well defined time span, you can use a starting and ending t
 
 `:~# s3-pit-restore -b my-bucket -d my-restored-subfolder -p mysubfolder -f "05-01-2016 00:00:00 +2" -t "06-01-2016 00:00:00 +2"`
 
+It's also possible to restore a bucket to another S3 bucket:
+
+`:~# s3-pit-restore -b my-bucket -B my-other-bucket/subfolder -f "05-01-2016 00:00:00 +2" -t "06-01-2016 00:00:00 +2"`
+
 ## Command line options
 
 ```
@@ -56,6 +60,8 @@ usage: s3-pit-restore [-h] -b BUCKET [-p PREFIX] [-t TIMESTAMP]
 
 optional arguments:
   -h, --help            show this help message and exit
+  -d DEST, --dest DEST  path where recovering to
+  -B DEST_BUCKET, --dest-bucket DEST_BUCKET
   -b BUCKET, --bucket BUCKET
                         s3 bucket to restore from
   -p PREFIX, --prefix PREFIX
@@ -64,7 +70,6 @@ optional arguments:
                         final point in time to restore at
   -f FROM_TIMESTAMP, --from-timestamp FROM_TIMESTAMP
                         starting point in time to restore from
-  -d DEST, --dest DEST  path where recovering to
   -e, --enable-glacier  enable recovering from glacier
   -v, --verbose         print verbose informations from s3 objects
   --dry-run             execute query without transferring files
