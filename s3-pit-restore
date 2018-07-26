@@ -37,8 +37,8 @@ args = None
 executor = None
 transfer = None
 client = None
-dest_bucket = ''
-dest_prefix = ''
+dest_bucket = None
+dest_prefix = None
 futures = {}
 
 ExtraArgsMetadataCopy={"MetadataDirective":"COPY"}
@@ -204,6 +204,8 @@ def do_restore():
     global transfer
     transfer = boto3.s3.transfer.S3Transfer(client)
     dest = args.dest
+    global dest_bucket
+    dest_bucket = args.dest_bucket
     last_obj = {}
     last_obj["Key"] = ""
 
@@ -213,10 +215,13 @@ def do_restore():
     executor = concurrent.futures.ThreadPoolExecutor(args.max_workers)
 
     destination_is_s3 = False
-    if dest.startswith("s3://"):
+    if dest_bucket:
         destination_is_s3 = True
-        global dest_bucket, dest_prefix
-        dest_bucket, dest_prefix = (dest+'/')[len('s3://'):].split('/', 1)
+        global dest_prefix
+        if '/' in dest_bucket:
+            dest_bucket, dest_prefix = dest_bucket.split('/', 1)
+        else:
+            dest_prefix = ''
         dest_prefix = dest_prefix.strip('/')
         if dest_prefix: dest_prefix = dest_prefix+'/' # Empty string or /-terminated
     else:
@@ -286,11 +291,13 @@ if __name__=='__main__':
     signal.signal(signal.SIGINT, signal_handler)
 
     parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-d', '--dest', help='path where recovering to')
+    group.add_argument('-B', '--dest-bucket', help='s3 bucket where recovering to')
     parser.add_argument('-b', '--bucket', help='s3 bucket to restore from', required=True)
     parser.add_argument('-p', '--prefix', help='s3 path to restore from', default="")
     parser.add_argument('-t', '--timestamp', help='final point in time to restore at')
     parser.add_argument('-f', '--from-timestamp', help='starting point in time to restore from')
-    parser.add_argument('-d', '--dest', help='path where recovering to; can be an s3 bucket address', required=True)
     parser.add_argument('-e', '--enable-glacier', help='enable recovering from glacier', action='store_true')
     parser.add_argument('-v', '--verbose', help='print verbose informations from s3 objects', action='store_true')
     parser.add_argument('--dry-run', help='execute query without transferring files', action='store_true')
